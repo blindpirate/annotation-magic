@@ -7,6 +7,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Create a "composite" annotation to simplify annotation piling up.
+ * See <a href="https://github.com/blindpirate/annotation-magic">the documentation on GitHub</a> for more details.
+ */
 @Target(ElementType.ANNOTATION_TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
