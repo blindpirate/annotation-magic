@@ -102,14 +102,14 @@ publishing {
 
     repositories {
         maven {
-            val repoUrl = if (version.toString().endsWith("SNAPSHOT")) property("SNAPSHOT_REPOSITORY_URL") else property("RELEASE_REPOSITORY_URL")
-            setUrl(repoUrl!!)
+            val repoUrl = if (version.toString().endsWith("SNAPSHOT")) findProperty("SNAPSHOT_REPOSITORY_URL") else findProperty("RELEASE_REPOSITORY_URL")
+            setUrl(repoUrl ?: "")
 
             authentication {
                 create<BasicAuthentication>("basic") {
                     credentials {
-                        username = property("NEXUS_USERNAME") as String
-                        password = property("NEXUS_PASSWORD") as String
+                        username = findProperty("NEXUS_USERNAME")?.toString() ?: ""
+                        password = findProperty("NEXUS_PASSWORD")?.toString() ?: ""
                     }
                 }
             }

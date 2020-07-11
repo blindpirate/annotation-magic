@@ -8,6 +8,10 @@ can greatly improve your API design.
 
 ## Annotation Inheritance
 
+In the following example, you can see how `@Cat` extends `@Pet`, which extends `@Animal`.
+
+You declare the inheritance relationship via `@Extends` annotation.
+
 ```
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD, ElementType.ANNOTATION_TYPE})
@@ -138,3 +142,19 @@ public class ReadMeCompositionSampleTest {
 
 In this case, `@GetResource` is equivalent to `@GET`/`@Path`/`@Produces` present together. You can get any of them as if they exist.
 
+## Import
+
+This library is published to maven central:
+
+```
+Gradle:
+
+implmentation("com.github.blindpirate:annotation-magic:0.1")
+
+Maven:
+<dependency>
+    <groupId>comm.github.blindpirate</groupId>
+    <artifactId>annotation-magic</artifactId>
+    <version>0.1</version>
+</dependency>
+```
