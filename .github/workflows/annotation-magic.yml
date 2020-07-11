@@ -1,0 +1,37 @@
+name: annotation-magic
+
+on:
+  push:
+    paths-ignore:
+      - '*.md'
+  pull_request:
+    paths-ignore:
+      - '*.md'
+
+jobs:
+  run:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        java: [8, 11]
+        os: [ubuntu-latest, macOS-latest]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK ${{ matrix.java }}
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java }}
+      - name: Cache node modules
+        uses: actions/cache@v1
+        env:
+          cache-name: cache-gradle-user-home
+        with:
+          path: ~/.gradle
+          key: ${{ runner.os }}-${{ hashFiles('**/*.gradle.kts') }}
+          restore-keys: |
+            ${{ runner.os }}-
+      - name: Show Gradle version
+        run: ./gradlew --version
+      - name: Build with Gradle
+        run: ./gradlew check
+

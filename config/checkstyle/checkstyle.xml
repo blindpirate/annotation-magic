@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+        "-//Puppy Crawl//DTD Check Configuration 1.1//EN"
+        "http://www.puppycrawl.com/dtds/configuration_1_1.dtd">
+<module name="Checker">
+        <module name="NewlineAtEndOfFile">
+            <property name="lineSeparator" value="lf" />
+        </module>
+    <!--    <module name="FileTabCharacter">-->
+    <!--        <property name="fileExtensions" value="java,xml"/>-->
+    <!--    </module>-->
+    <!--    <module name="RegexpSingleline">-->
+    <!--        &lt;!&ndash; \s matches whitespace character, $ matches end of line. &ndash;&gt;-->
+    <!--        <property name="format" value="\s+$"/>-->
+    <!--        <property name="message" value="Line has trailing spaces."/>-->
+    <!--    </module>-->
+    <module name="TreeWalker">
+        <module name="EmptyBlock"/>
+        <module name="LeftCurly"/>
+        <module name="NeedBraces">
+            <property name="allowSingleLineStatement" value="true"/>
+        </module>
+        <!--        <module name="DeclarationOrder"/>-->
+        <module name="DefaultComesLast">
+            <property name="skipIfLastAndSharedWithCase" value="true"/>
+        </module>
+        <module name="EmptyStatement"/>
+        <module name="EqualsAvoidNull"/>
+        <module name="EqualsHashCode"/>
+        <module name="NestedForDepth">
+            <property name="max" value="3"/>
+        </module>
+        <module name="NestedIfDepth">
+            <property name="max" value="3"/>
+        </module>
+        <module name="NestedTryDepth">
+            <property name="max" value="3"/>
+        </module>
+        <module name="OneStatementPerLine"/>
+        <!--        https://github.com/hcsp/fix-self-increment-bug/pull/181/files -->
+        <!--        <module name="ParameterAssignment"/>-->
+        <module name="SimplifyBooleanExpression"/>
+        <module name="SimplifyBooleanReturn"/>
+        <module name="StringLiteralEquality"/>
+        <module name="UnnecessaryParentheses"/>
+        <module name="ConstantName"/>
+        <module name="LambdaParameterName"/>
+        <module name="LocalVariableName">
+            <property name="format" value="^[a-z\u4e00-\u9fff][a-zA-Z0-9]*$"/>
+        </module>
+        <module name="MemberName">
+            <property name="format" value="^[a-z\u4e00-\u9fff][a-zA-Z0-9]*$"/>
+        </module>
+        <module name="MethodName">
+            <property name="format" value="^[a-z\u4e00-\u9fff][a-zA-Z0-9]*$"/>
+        </module>
+        <module name="PackageName"/>
+        <module name="StaticVariableName"/>
+        <module name="TypeName">
+            <property name="format" value="^[A-Z\u4e00-\u9fff][a-zA-Z0-9]*$"/>
+        </module>
+        <module name="GenericWhitespace"/>
+        <module name="NoLineWrap"/>
+        <module name="WhitespaceAfter"/>
+        <module name="NoWhitespaceBefore"/>
+        <module name="OperatorWrap"/>
+        <module name="ParenPad"/>
+        <module name="SingleSpaceSeparator"/>
+        <module name="TypecastParenPad"/>
+        <module name="WhitespaceAround"/>
+
+        <module name="AvoidStarImport">
+            <property name="allowStaticMemberImports" value="true"/>
+        </module>
+
+        <module name="RedundantImport"/>
+        <module name="UnusedImports"/>
+        <module name="IllegalImport"/>
+        <module name="RedundantImport"/>
+        <module name="UnusedImports"/>
+        <module name="NeedBraces"/>
+        <module name="JavadocMethod">
+            <property name="scope" value="public"/>
+        </module>
+        <module name="ModifierOrder"/>
+        <module name="RedundantModifier"/>
+        <module name="UpperEll"/>
+        <module name="LeftCurly"/>
+        <module name="NeedBraces"/>
+        <module name="RightCurly"/>
+        <module name="GenericWhitespace"/>
+        <module name="WhitespaceAfter"/>
+        <module name="NoWhitespaceBefore"/>
+    </module>
+    <module name="FileTabCharacter"/>
+    <module name="NewlineAtEndOfFile"/>
+</module>
