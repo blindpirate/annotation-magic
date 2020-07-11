@@ -1,5 +1,7 @@
 # Annotation Magic - the magic of Java annotations
 
+![annotation-magic](https://github.com/blindpirate/annotation-magic/workflows/annotation-magic/badge.svg)
+
 Java annotation is a great feature, but it doesn't support inheritance or composition. This
 library enables annotation inheritance and composition for you, aka. "the magic way", which
 can greatly improve your API design.
