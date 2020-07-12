@@ -149,11 +149,11 @@ This library is published to maven central:
 ```
 Gradle:
 
-implmentation("com.github.blindpirate:annotation-magic:0.1")
+implementation("com.github.blindpirate:annotation-magic:0.1")
 
 Maven:
 <dependency>
-    <groupId>comm.github.blindpirate</groupId>
+    <groupId>com.github.blindpirate</groupId>
     <artifactId>annotation-magic</artifactId>
     <version>0.1</version>
 </dependency>
