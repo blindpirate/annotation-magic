@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class AnnotationMagicTest {
     @Test
-    public void catGetAllAnnotationsOfSameBaseAnnotation() {
+    public void canGetAllAnnotationsOfSameBaseAnnotation() {
         assertEquals("Base", AnnotationMagic.getOneAnnotationOnClassOrNull(TestClassWithBase.class, Base.class).value());
         assertEquals("Mid", AnnotationMagic.getOneAnnotationOnClassOrNull(TestClassWithMid.class, Base.class).value());
         assertEquals("Sub", AnnotationMagic.getOneAnnotationOnClassOrNull(TestClassWithSub.class, Base.class).value());

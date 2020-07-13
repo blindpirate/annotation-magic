@@ -14,7 +14,7 @@ class TestClass {
 
 public class CacheabilityTest {
     @Test
-    public void resultAreCached() {
+    public void resultsAreCached() {
         Pet petAnnotation = AnnotationMagic.getOneAnnotationOnClassOrNull(TestClass.class, Pet.class);
         Pet petAnnotation2 = AnnotationMagic.getOneAnnotationOnClassOrNull(TestClass.class, Pet.class);
         assertSame(petAnnotation, petAnnotation2);
