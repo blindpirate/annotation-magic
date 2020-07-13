@@ -6,7 +6,7 @@ import java.util.List;
 
 /**
  * The main entry point for AnnotationMagic library, which retrieves Java annotations <em>"in the magic way"</em>.
- * Which supports annotation inheritance and composition.
+ * It supports annotation inheritance and composition.
  *
  * See <a href="https://github.com/blindpirate/annotation-magic">the documentation on GitHub</a> for more details.
  *
@@ -17,8 +17,8 @@ public class AnnotationMagic {
 
     /**
      * Returns the annotation of the specified {@code annotationClass} type on {@code targetClass} <em>in the magic way</em>
-     * <em>if and only if one annotation can be found</em>, else null. If more than one annotations are found, an exception will
-     * be thrown.
+     * <em>if and only if one annotation can be found</em>, or else null. If more than one annotation is found, an
+     * exception will be thrown.
      *
      * @param targetClass the target class to be searched for annotations
      * @param annotationClass the Class object corresponding to the annotation type
@@ -32,8 +32,8 @@ public class AnnotationMagic {
 
     /**
      * Returns the annotation of the specified {@code annotationClass} type on {@code method} <em>in the magic way</em>
-     * <em>if and only if one annotation can be found</em>, else null. If more than one annotations are found, an exception will
-     * be thrown.
+     * <em>if and only if one annotation can be found</em>, or else null. If more than one annotation is found, an
+     * exception will be thrown.
      *
      * @param method the target method to be searched for annotations
      * @param annotationClass the Class object corresponding to the annotation type
@@ -75,7 +75,8 @@ public class AnnotationMagic {
 
     /**
      * Returns the annotation of the specified {@code annotationClass} type on {@code method}'s {@code i}th parameter <em>in the magic way</em>
-     * <em>if and only if one annotation can be found</em>, else null. If more than one annotations are found, an exception will be thrown.
+     * <em>if and only if one annotation can be found</em>, or else null. If more than one annotation is found, an
+     * exception will be thrown.
      *
      * @param method the target method to be searched for annotations
      * @param i the index of target parameter in target method's parameter list

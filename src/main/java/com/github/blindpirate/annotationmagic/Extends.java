@@ -10,6 +10,7 @@ import java.lang.annotation.Target;
  * Marks an annotation extends (inherits) another annotation.
  * Similar to class inheritance, if annotation X extends annotation Y,
  * when searching Y annotation, X annotation will also be returned.
+ *
  * See <a href="https://github.com/blindpirate/annotation-magic">the documentation on GitHub</a> for more details.
  */
 @Retention(RetentionPolicy.RUNTIME)
