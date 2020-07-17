@@ -124,7 +124,7 @@ public class AnnotationMagician {
             }
 
             /*
-            @interface Gett {
+            @interface Get {
                 @AliasFor("path")
                 String value() default "";
 
@@ -132,7 +132,7 @@ public class AnnotationMagician {
             }
 
 
-            @CompositeOf({Gett.class, Json.class})
+            @CompositeOf({Get.class, Json.class})
             @interface GetJson {
                 @AliasFor(value = "path", target = Get.class)
                 String path() default "";
@@ -147,11 +147,8 @@ public class AnnotationMagician {
                 if (aliasFor.target() != klass) {
                     return false;
                 }
-
-                return Stream.of(klass.getMethods())
-                        .map(it -> it.getAnnotation(AliasFor.class))
-                        .filter(Objects::nonNull)
-                        .anyMatch(it -> it.value().equals(aliasFor.value()));
+                AliasFor redirect = methodBeingInvoked.getAnnotation(AliasFor.class);
+                return redirect != null && redirect.target() == AliasFor.DefaultThis.class && redirect.value().equals(aliasFor.value());
             }
 
             /*
@@ -197,6 +194,7 @@ public class AnnotationMagician {
     /*
      * Walk along `@Extends` annotation hierarchy to get all annotations.
      */
+    @SuppressWarnings("unchecked")
     private static <A extends Annotation> A examineAnnotation(Annotation actual, Class<A> targetAnnotationClass) {
         // Two passes:
         // 1. scan all annotation hierarchy classes

@@ -83,9 +83,11 @@ public class AnnotationMagicTest {
 
     @Test
     public void compositeOfTest() {
-        assertEquals("test", AnnotationMagic.getOneAnnotationOnClassOrNull(TestClassWithGetJson.class, Gett.class).path());
         assertEquals("test", AnnotationMagic.getOneAnnotationOnClassOrNull(TestClassWithGetJson.class, Gett.class).value());
+        assertEquals("test", AnnotationMagic.getOneAnnotationOnClassOrNull(TestClassWithGetJson.class, Gett.class).path());
         assertEquals("test", AnnotationMagic.getOneAnnotationOnClassOrNull(TestClassWithGetJson.class, Route.class).path());
+        assertEquals("", AnnotationMagic.getOneAnnotationOnClassOrNull(TestClassWithGetJson.class, Gett.class).regex());
+        assertEquals("", AnnotationMagic.getOneAnnotationOnClassOrNull(TestClassWithGetJson.class, Route.class).regex());
         assertTrue(AnnotationMagic.getOneAnnotationOnClassOrNull(TestClassWithGetJson.class, Json.class).pretty());
         Exception exception = assertThrows(Exception.class, () -> AnnotationMagic.getOneAnnotationOnClassOrNull(TestClassWithInvalidGetJson.class, Gett.class).path());
 
@@ -111,10 +113,11 @@ enum InterceptType {
 
 @Retention(RetentionPolicy.RUNTIME)
 @interface Route {
-
     HttpMethod method() default HttpMethod.GET;
 
     String path() default "";
+
+    String regex() default "";
 }
 
 
@@ -131,6 +134,8 @@ class TestClassWithRoute {
     @AliasFor("path")
     String value() default "";
 
+    String regex() default "";
+
     String path() default "";
 }
 
@@ -144,6 +149,9 @@ class TestClassWithRoute {
 @interface GetJson {
     @AliasFor(value = "path", target = Gett.class)
     String path() default "";
+
+    @AliasFor(value = "regex", target = Gett.class)
+    String regex() default "";
 
     @AliasFor(value = "pretty", target = Json.class)
     boolean pretty() default false;
