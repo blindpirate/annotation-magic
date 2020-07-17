@@ -76,6 +76,7 @@ public class AnnotationMagician {
         return !getAnnotationsOnMethod(targetMethod, annotationClass).isEmpty();
     }
 
+    @SuppressWarnings("unchecked")
     private <T> T getCached(List<Object> keys, Supplier<T> supplier) {
         Optional<Object> ret = cache.get(keys);
         if (ret == null) {
@@ -113,13 +114,60 @@ public class AnnotationMagician {
 
                 for (Method methodInCompositeAnnotation : annotation.annotationType().getMethods()) {
                     AliasFor aliasFor = methodInCompositeAnnotation.getAnnotation(AliasFor.class);
-                    if (aliasFor != null && aliasFor.target() == klass && aliasFor.value().equals(method.getName())) {
+                    if (aliasFor != null && (isDirectAlias(aliasFor, method) || isIndirectAlias(aliasFor, method))) {
                         result = methodInCompositeAnnotation.invoke(annotation);
                         cache.put(method.getName(), result);
                         return result;
                     }
                 }
-                throw new IllegalStateException("Not found " + method.getName() + " in composite annotation " + annotation);
+                throw new IllegalStateException("Not found " + method.getName() + "() in composite annotation " + annotation);
+            }
+
+            /*
+            @interface Gett {
+                @AliasFor("path")
+                String value() default "";
+
+                String path() default "";
+            }
+
+
+            @CompositeOf({Gett.class, Json.class})
+            @interface GetJson {
+                @AliasFor(value = "path", target = Get.class)
+                String path() default "";
+
+                @AliasFor(value = "pretty", target = Json.class)
+                boolean pretty() default false;
+            }
+
+            GetJson.path() is direct alias for Get.value()
+            */
+            private boolean isIndirectAlias(AliasFor aliasFor, Method methodBeingInvoked) {
+                if (aliasFor.target() != klass) {
+                    return false;
+                }
+
+                return Stream.of(klass.getMethods())
+                        .map(it -> it.getAnnotation(AliasFor.class))
+                        .filter(Objects::nonNull)
+                        .anyMatch(it -> it.value().equals(aliasFor.value()));
+            }
+
+            /*
+            @CompositeOf({Gett.class, Json.class})
+            @interface GetJson {
+                @AliasFor(value = "path", target = Get.class)
+                String path() default "";
+
+                @AliasFor(value = "pretty", target = Json.class)
+                boolean pretty() default false;
+            }
+
+            GetJson.path() is direct alias for Get.path()
+            */
+            private boolean isDirectAlias(AliasFor aliasFor, Method methodBeingInvoked) {
+                return aliasFor.target() == klass && aliasFor.value().equals(methodBeingInvoked.getName());
             }
         }));
     }

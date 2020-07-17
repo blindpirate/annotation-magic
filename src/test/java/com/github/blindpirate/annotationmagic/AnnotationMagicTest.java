@@ -84,13 +84,14 @@ public class AnnotationMagicTest {
     @Test
     public void compositeOfTest() {
         assertEquals("test", AnnotationMagic.getOneAnnotationOnClassOrNull(TestClassWithGetJson.class, Gett.class).path());
+        assertEquals("test", AnnotationMagic.getOneAnnotationOnClassOrNull(TestClassWithGetJson.class, Gett.class).value());
         assertEquals("test", AnnotationMagic.getOneAnnotationOnClassOrNull(TestClassWithGetJson.class, Route.class).path());
         assertTrue(AnnotationMagic.getOneAnnotationOnClassOrNull(TestClassWithGetJson.class, Json.class).pretty());
         Exception exception = assertThrows(Exception.class, () -> AnnotationMagic.getOneAnnotationOnClassOrNull(TestClassWithInvalidGetJson.class, Gett.class).path());
 
         System.out.println(exception.getCause().getCause().getMessage());
 
-        assertTrue(exception.getCause().getCause().getMessage().contains("Not found path in composite annotation @" + getClass().getPackage().getName() + ".InvalidGetJson"));
+        assertTrue(exception.getCause().getCause().getMessage().contains("Not found path() in composite annotation @" + getClass().getPackage().getName() + ".InvalidGetJson"));
     }
 }
 
@@ -127,6 +128,9 @@ class TestClassWithRoute {
 @Retention(RetentionPolicy.RUNTIME)
 @Extends(Route.class)
 @interface Gett {
+    @AliasFor("path")
+    String value() default "";
+
     String path() default "";
 }
 
