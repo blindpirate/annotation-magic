@@ -12,7 +12,7 @@ plugins {
 }
 
 rootProject.group = "com.gradle.blindpirate"
-rootProject.version = "0.1"
+rootProject.version = "0.1.1"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
@@ -68,7 +68,7 @@ publishing {
         create<MavenPublication>("mavenJava") {
             groupId = "com.github.blindpirate"
             artifactId = "annotation-magic"
-            version = "0.1"
+            version = rootProject.version.toString()
 
             from(components["java"])
             artifact("sourcesJar")
