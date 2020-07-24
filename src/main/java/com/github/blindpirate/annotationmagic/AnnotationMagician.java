@@ -68,6 +68,14 @@ public class AnnotationMagician {
         return getCached(Arrays.asList(4, annotationType), () -> getAnnotationHierarchy(annotationType)).contains(klass);
     }
 
+    public <A extends Annotation> A cast(Annotation annotation, Class<A> targetAnnotation) {
+        A ret = getCached(Arrays.asList(5, annotation, targetAnnotation), () -> examineAnnotation(annotation, targetAnnotation));
+        if (ret == null) {
+            throw new ClassCastException("Can't cast " + annotation + " to class " + targetAnnotation + "!");
+        }
+        return ret;
+    }
+
     public boolean isAnnotationPresent(Class<?> targetClass, Class<? extends Annotation> annotationClass) {
         return !getAnnotationsOnClass(targetClass, annotationClass).isEmpty();
     }
@@ -169,6 +177,9 @@ public class AnnotationMagician {
         }));
     }
 
+    /*
+     * Walk along `@Extends` annotation hierarchy to get all annotations.
+     */
     private static LinkedHashSet<Class<? extends Annotation>> getAnnotationHierarchy(Class<? extends Annotation> klass) {
         Class<? extends Annotation> currentClass = klass;
         LinkedHashSet<Class<? extends Annotation>> hierarchy = new LinkedHashSet<>();
@@ -191,9 +202,6 @@ public class AnnotationMagician {
         return annotations.isEmpty() ? null : annotations.get(0);
     }
 
-    /*
-     * Walk along `@Extends` annotation hierarchy to get all annotations.
-     */
     @SuppressWarnings("unchecked")
     private static <A extends Annotation> A examineAnnotation(Annotation actual, Class<A> targetAnnotationClass) {
         // Two passes:

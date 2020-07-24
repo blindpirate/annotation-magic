@@ -10,7 +10,7 @@ import java.util.List;
  *
  * See <a href="https://github.com/blindpirate/annotation-magic">the documentation on GitHub</a> for more details.
  *
- * All operations in this class is fully cached by default. See {@link AnnotationMagician}.
+ * All operations in this class is fully cached by default. See {@link AnnotationMagician#cache}.
  */
 public class AnnotationMagic {
     private static final AnnotationMagician INSTANCE = new AnnotationMagician();
@@ -99,6 +99,19 @@ public class AnnotationMagic {
      */
     public static boolean instanceOf(Annotation annotation, Class<? extends Annotation> klass) {
         return INSTANCE.instanceOf(annotation, klass);
+    }
+
+    /**
+     * Cast an annotation to its super annotation <em>in the magic way</em>. You should make sure {@link #instanceOf(Annotation, Class)} returns true
+     * on the parameters, otherwise a {@link ClassCastException} will be thrown.
+     *
+     * @param annotation the annotation to be cast
+     * @param targetAnnotation the class instance of the annotation type to be cast to
+     * @param <A> the annotation type to be cast to
+     * @return the cast result. A {@link ClassCastException} will be thrown if the cast can't be performed,
+     */
+    public static <A extends Annotation> A cast(Annotation annotation, Class<A> targetAnnotation) {
+        return INSTANCE.cast(annotation, targetAnnotation);
     }
 
     /**

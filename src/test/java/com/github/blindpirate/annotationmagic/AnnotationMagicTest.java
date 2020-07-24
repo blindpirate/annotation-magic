@@ -82,6 +82,15 @@ public class AnnotationMagicTest {
     }
 
     @Test
+    public void castTest() {
+        assertEquals("get", AnnotationMagic.cast(TestClassWithGet.class.getAnnotation(Gett.class), Route.class).path());
+        assertEquals("get", AnnotationMagic.cast(TestClassWithGet.class.getAnnotation(Gett.class), Route.class).path());
+        assertThrows(ClassCastException.class, () ->
+                AnnotationMagic.cast(TestClassWithGetJson.class.getAnnotation(GetJson.class), Route.class)
+        );
+    }
+
+    @Test
     public void compositeOfTest() {
         assertEquals("test", AnnotationMagic.getOneAnnotationOnClassOrNull(TestClassWithGetJson.class, Gett.class).value());
         assertEquals("test", AnnotationMagic.getOneAnnotationOnClassOrNull(TestClassWithGetJson.class, Gett.class).path());

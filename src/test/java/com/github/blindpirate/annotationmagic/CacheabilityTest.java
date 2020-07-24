@@ -18,6 +18,11 @@ public class CacheabilityTest {
         Pet petAnnotation = AnnotationMagic.getOneAnnotationOnClassOrNull(TestClass.class, Pet.class);
         Pet petAnnotation2 = AnnotationMagic.getOneAnnotationOnClassOrNull(TestClass.class, Pet.class);
         assertSame(petAnnotation, petAnnotation2);
+
+        petAnnotation = AnnotationMagic.cast(TestClass.class.getAnnotation(Cat.class), Pet.class);
+        petAnnotation2 = AnnotationMagic.cast(TestClass.class.getAnnotation(Cat.class), Pet.class);
+        assertSame(petAnnotation, petAnnotation2);
+
     }
 
     @Test
