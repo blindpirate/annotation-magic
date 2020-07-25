@@ -5,6 +5,10 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -88,6 +92,22 @@ public class AnnotationMagicTest {
         assertThrows(ClassCastException.class, () ->
                 AnnotationMagic.cast(TestClassWithGetJson.class.getAnnotation(GetJson.class), Route.class)
         );
+    }
+
+    @Test
+    public void consecutiveCastTest() {
+        List<Route> superAnnotations = Stream.of(TestClassWithGet.class.getAnnotations())
+                .filter(it -> AnnotationMagic.instanceOf(it, Route.class))
+                .map(it -> AnnotationMagic.cast(it, Route.class))
+                .collect(Collectors.toList());
+
+        assertEquals(Collections.singletonList("get"),
+                superAnnotations.stream()
+                        .filter(it -> AnnotationMagic.instanceOf(it, Gett.class))
+                        .map(it -> AnnotationMagic.cast(it, Gett.class).path())
+                        .collect(Collectors.toList())
+        );
+
     }
 
     @Test

@@ -204,6 +204,9 @@ public class AnnotationMagician {
 
     @SuppressWarnings("unchecked")
     private static <A extends Annotation> A examineAnnotation(Annotation actual, Class<A> targetAnnotationClass) {
+        if (actual instanceof AnnotationAdapter) {
+            actual = ((AnnotationAdapter) actual).getActualAnnotation();
+        }
         // Two passes:
         // 1. scan all annotation hierarchy classes
         // 2. construct a proxy with all information (probably overridden by sub annotations)
@@ -213,19 +216,39 @@ public class AnnotationMagician {
             return null;
         }
 
-        return (A) Proxy.newProxyInstance(targetAnnotationClass.getClassLoader(), new Class[]{targetAnnotationClass}, new InvocationHandler() {
-            private Map<String, Optional<Object>> fieldsCache = new HashMap<>();
+        return (A) Proxy.newProxyInstance(targetAnnotationClass.getClassLoader(), new Class[]{targetAnnotationClass, AnnotationAdapter.class},
+                new AnnotationAdapterProxy<A>(actual, targetAnnotationClass, hierarchy));
+    }
 
-            @Override
-            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                Optional<Object> cachedField = fieldsCache.get(method.getName());
-                if (cachedField == null) {
-                    cachedField = searchInHierarchy(actual, targetAnnotationClass, hierarchy, method.getName());
-                    fieldsCache.put(method.getName(), cachedField);
-                }
-                return cachedField.orElse(null);
+    interface AnnotationAdapter {
+        Annotation getActualAnnotation();
+    }
+
+    private static class AnnotationAdapterProxy<A extends Annotation> implements InvocationHandler {
+        private final Annotation actual;
+        private final Class<A> targetAnnotationClass;
+        private final LinkedHashSet<Class<? extends Annotation>> actualAnnotationHierarchy;
+        private Map<String, Optional<Object>> methodsCache = new ConcurrentHashMap<>();
+
+        AnnotationAdapterProxy(Annotation actual, Class<A> targetAnnotationClass, LinkedHashSet<Class<? extends Annotation>> actualAnnotationHierarchy) {
+            this.actual = actual;
+            this.targetAnnotationClass = targetAnnotationClass;
+            this.actualAnnotationHierarchy = actualAnnotationHierarchy;
+        }
+
+        @Override
+        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            if (method.getDeclaringClass() == AnnotationAdapter.class) {
+                return actual;
             }
-        });
+
+            Optional<Object> cachedField = methodsCache.get(method.getName());
+            if (cachedField == null) {
+                cachedField = searchInHierarchy(actual, targetAnnotationClass, actualAnnotationHierarchy, method.getName());
+                methodsCache.put(method.getName(), cachedField);
+            }
+            return cachedField.orElse(null);
+        }
     }
 
     private static Optional<Object> searchInHierarchy(Annotation actual, Class<? extends Annotation> targetAnnotationClass, LinkedHashSet<Class<? extends Annotation>> hierarchy, String name) {
