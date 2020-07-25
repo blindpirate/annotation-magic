@@ -7,12 +7,14 @@ import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
@@ -102,88 +104,111 @@ public class AnnotationMagician {
                 .collect(toList());
     }
 
+    private int indexOf(Annotation[] annotations, Class<? extends Annotation> targetAnnotation) {
+        for (int i = 0; i < annotations.length; ++i) {
+            if (annotations[i].annotationType() == targetAnnotation) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     private Stream<Annotation> expandAnnotation(Annotation annotation) {
-        CompositeOf compositeOf = annotation.annotationType().getAnnotation(CompositeOf.class);
-        if (compositeOf == null) {
+        Annotation[] annotationsOnTargetAnnotationType = annotation.annotationType().getAnnotations();
+
+        int compositeOfIndex = indexOf(annotationsOnTargetAnnotationType, CompositeOf.class);
+        int extendsIndex = indexOf(annotationsOnTargetAnnotationType, Extends.class);
+
+        if (compositeOfIndex == -1) {
             return Stream.of(annotation);
         }
-        return Stream.of(compositeOf.value()).map(klass -> (Annotation) Proxy.newProxyInstance(klass.getClassLoader(), new Class[]{klass}, new InvocationHandler() {
-            Map<String, Object> cache = new HashMap<>();
 
-            @Override
-            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                if ("annotationType".equals(method.getName())) {
-                    return klass;
-                }
-                Object result = cache.get(method.getName());
-                if (result != null) {
-                    return result;
-                }
+        LinkedList<Annotation> result = Stream.of(((CompositeOf) annotationsOnTargetAnnotationType[compositeOfIndex]).value())
+                .map(klass -> (Annotation) Proxy.newProxyInstance(klass.getClassLoader(), new Class[]{klass}, new InvocationHandler() {
+                    Map<String, Object> cache = new HashMap<>();
 
-                for (Method methodInCompositeAnnotation : annotation.annotationType().getMethods()) {
-                    AliasFor aliasFor = methodInCompositeAnnotation.getAnnotation(AliasFor.class);
-                    if (aliasFor != null && (isDirectAlias(aliasFor, method) || isIndirectAlias(aliasFor, method))) {
-                        result = methodInCompositeAnnotation.invoke(annotation);
-                        cache.put(method.getName(), result);
-                        return result;
+                    @Override
+                    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                        if ("annotationType".equals(method.getName())) {
+                            return klass;
+                        }
+                        Object result = cache.get(method.getName());
+                        if (result != null) {
+                            return result;
+                        }
+
+                        for (Method methodInCompositeAnnotation : annotation.annotationType().getMethods()) {
+                            AliasFor aliasFor = methodInCompositeAnnotation.getAnnotation(AliasFor.class);
+                            if (aliasFor != null && (isDirectAlias(aliasFor, method) || isIndirectAlias(aliasFor, method))) {
+                                result = methodInCompositeAnnotation.invoke(annotation);
+                                cache.put(method.getName(), result);
+                                return result;
+                            }
+                        }
+
+                        try {
+                            Object ret = klass.getMethod(method.getName()).getDefaultValue();
+                            if (ret == null) {
+                                throw new IllegalStateException("Can't invoke " + klass.getName() + "." + method.getName() + "() on composite annotation " + annotation);
+                            }
+                            return ret;
+                        } catch (NoSuchMethodError e) {
+                            throw new IllegalStateException("Can't invoke " + klass.getName() + "." + method.getName() + "() on composite annotation " + annotation, e);
+                        }
                     }
-                }
 
-                try {
-                    Object ret = klass.getMethod(method.getName()).getDefaultValue();
-                    if (ret == null) {
-                        throw new IllegalStateException("Can't invoke " + klass.getName() + "." + method.getName() + "() on composite annotation " + annotation);
+                    /*
+                    @interface Get {
+                        @AliasFor("path")
+                        String value() default "";
+
+                        String path() default "";
                     }
-                    return ret;
-                } catch (NoSuchMethodError e) {
-                    throw new IllegalStateException("Can't invoke " + klass.getName() + "." + method.getName() + "() on composite annotation " + annotation, e);
-                }
+
+
+                    @CompositeOf({Get.class, Json.class})
+                    @interface GetJson {
+                        @AliasFor(value = "path", target = Get.class)
+                        String path() default "";
+
+                        @AliasFor(value = "pretty", target = Json.class)
+                        boolean pretty() default false;
+                    }
+
+                    GetJson.path() is direct alias for Get.value()
+                    */
+                    private boolean isIndirectAlias(AliasFor aliasFor, Method methodBeingInvoked) {
+                        if (aliasFor.target() != klass) {
+                            return false;
+                        }
+                        AliasFor redirect = methodBeingInvoked.getAnnotation(AliasFor.class);
+                        return redirect != null && redirect.target() == AliasFor.DefaultThis.class && redirect.value().equals(aliasFor.value());
+                    }
+
+                    /*
+                    @CompositeOf({Gett.class, Json.class})
+                    @interface GetJson {
+                        @AliasFor(value = "path", target = Get.class)
+                        String path() default "";
+
+                        @AliasFor(value = "pretty", target = Json.class)
+                        boolean pretty() default false;
+                    }
+
+                    GetJson.path() is direct alias for Get.path()
+                    */
+                    private boolean isDirectAlias(AliasFor aliasFor, Method methodBeingInvoked) {
+                        return aliasFor.target() == klass && aliasFor.value().equals(methodBeingInvoked.getName());
+                    }
+                })).collect(Collectors.toCollection(LinkedList::new));
+        if (extendsIndex != -1) {
+            if (extendsIndex < compositeOfIndex) {
+                result.addFirst(annotation);
+            } else {
+                result.add(annotation);
             }
-
-            /*
-            @interface Get {
-                @AliasFor("path")
-                String value() default "";
-
-                String path() default "";
-            }
-
-
-            @CompositeOf({Get.class, Json.class})
-            @interface GetJson {
-                @AliasFor(value = "path", target = Get.class)
-                String path() default "";
-
-                @AliasFor(value = "pretty", target = Json.class)
-                boolean pretty() default false;
-            }
-
-            GetJson.path() is direct alias for Get.value()
-            */
-            private boolean isIndirectAlias(AliasFor aliasFor, Method methodBeingInvoked) {
-                if (aliasFor.target() != klass) {
-                    return false;
-                }
-                AliasFor redirect = methodBeingInvoked.getAnnotation(AliasFor.class);
-                return redirect != null && redirect.target() == AliasFor.DefaultThis.class && redirect.value().equals(aliasFor.value());
-            }
-
-            /*
-            @CompositeOf({Gett.class, Json.class})
-            @interface GetJson {
-                @AliasFor(value = "path", target = Get.class)
-                String path() default "";
-
-                @AliasFor(value = "pretty", target = Json.class)
-                boolean pretty() default false;
-            }
-
-            GetJson.path() is direct alias for Get.path()
-            */
-            private boolean isDirectAlias(AliasFor aliasFor, Method methodBeingInvoked) {
-                return aliasFor.target() == klass && aliasFor.value().equals(methodBeingInvoked.getName());
-            }
-        }));
+        }
+        return result.stream();
     }
 
     /*

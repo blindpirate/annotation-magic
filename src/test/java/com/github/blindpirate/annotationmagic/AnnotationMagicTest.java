@@ -7,11 +7,12 @@ import org.junit.platform.commons.util.ExceptionUtils;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.stream.Collectors.toList;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -102,13 +103,13 @@ public class AnnotationMagicTest {
         List<Route> superAnnotations = Stream.of(TestClassWithGet.class.getAnnotations())
                 .filter(it -> AnnotationMagic.instanceOf(it, Route.class))
                 .map(it -> AnnotationMagic.cast(it, Route.class))
-                .collect(Collectors.toList());
+                .collect(toList());
 
         assertEquals(Collections.singletonList("get"),
                 superAnnotations.stream()
                         .filter(it -> AnnotationMagic.instanceOf(it, Gett.class))
                         .map(it -> AnnotationMagic.cast(it, Gett.class).path())
-                        .collect(Collectors.toList())
+                        .collect(toList())
         );
     }
 
@@ -132,6 +133,51 @@ public class AnnotationMagicTest {
                 () -> AnnotationMagic.getOneAnnotationOnClassOrNull(TestClassWithBaseAndRoute.class, WithoutDefault.class).value());
         MatcherAssert.assertThat(ExceptionUtils.readStackTrace(e), containsString("Can't invoke com.github.blindpirate.annotationmagic.WithoutDefault.value() on composite annotation @com.github.blindpirate.annotationmagic.BaseAndRoute()"));
     }
+
+    @Test
+    public void compositionInheritanceJointTest() {
+        List<Route> routes = AnnotationMagic.getAnnotationsOnClass(TestClassWithJointAnnotation.class, Route.class);
+        assertEquals(Arrays.asList(HttpMethod.GET, HttpMethod.POST, HttpMethod.GET), routes.stream().map(Route::method).collect(toList()));
+        assertEquals(Arrays.asList("", "joint", ""), routes.stream().map(Route::path).collect(toList()));
+        assertEquals(Arrays.asList("jointRegex", "", ""), routes.stream().map(Route::regex).collect(toList()));
+
+        assertTrue(AnnotationMagic.instanceOf(routes.get(1), Route.class));
+        assertTrue(AnnotationMagic.instanceOf(routes.get(1), Joint.class));
+    }
+
+    @Test
+    public void jointAnnotationsAreStrictlyOrdered() {
+        List<Route> routes = AnnotationMagic.getAnnotationsOnClass(TestClassWithJointAnnotation2.class, Route.class);
+        assertEquals(Arrays.asList(HttpMethod.GET, HttpMethod.POST, HttpMethod.GET), routes.stream().map(Route::method).collect(toList()));
+        assertEquals(Arrays.asList("abc", "joint", ""), routes.stream().map(Route::path).collect(toList()));
+        assertEquals(Arrays.asList("", "", "jointRegex"), routes.stream().map(Route::regex).collect(toList()));
+    }
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@Extends(Route.class)
+@Route(method = HttpMethod.POST, path = "joint")
+@CompositeOf({Base.class, Gett.class, Sub.class})
+@interface Joint {
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@CompositeOf({Base.class, Gett.class, Sub.class})
+@Extends(Route.class)
+@Route(method = HttpMethod.POST, path = "joint")
+@interface Joint2 {
+    @AliasFor(target = Gett.class, value = "path")
+    String getPath();
+}
+
+@Route(regex = "jointRegex")
+@Joint
+class TestClassWithJointAnnotation {
+}
+
+@Joint2(getPath = "abc")
+@Route(regex = "jointRegex")
+class TestClassWithJointAnnotation2 {
 }
 
 @Retention(RetentionPolicy.RUNTIME)
