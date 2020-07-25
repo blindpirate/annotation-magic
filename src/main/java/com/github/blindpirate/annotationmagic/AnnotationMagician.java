@@ -204,9 +204,7 @@ public class AnnotationMagician {
 
     @SuppressWarnings("unchecked")
     private static <A extends Annotation> A examineAnnotation(Annotation actual, Class<A> targetAnnotationClass) {
-        if (actual instanceof AnnotationAdapter) {
-            actual = ((AnnotationAdapter) actual).getActualAnnotation();
-        }
+        actual = getActualAnnotationBehindProxy(actual);
         // Two passes:
         // 1. scan all annotation hierarchy classes
         // 2. construct a proxy with all information (probably overridden by sub annotations)
@@ -218,6 +216,14 @@ public class AnnotationMagician {
 
         return (A) Proxy.newProxyInstance(targetAnnotationClass.getClassLoader(), new Class[]{targetAnnotationClass, AnnotationAdapter.class},
                 new AnnotationAdapterProxy<A>(actual, targetAnnotationClass, hierarchy));
+    }
+
+    private static Annotation getActualAnnotationBehindProxy(Annotation annotation) {
+        if (annotation instanceof AnnotationAdapter) {
+            return ((AnnotationAdapter) annotation).getActualAnnotation();
+        } else {
+            return annotation;
+        }
     }
 
     interface AnnotationAdapter {
@@ -240,6 +246,18 @@ public class AnnotationMagician {
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             if (method.getDeclaringClass() == AnnotationAdapter.class) {
                 return actual;
+            }
+
+            if ("hashCode".equals(method.getName())) {
+                return getActualAnnotationBehindProxy(actual).hashCode();
+            }
+
+            if ("equals".equals(method.getName()) && method.getParameters().length == 1) {
+                if (args[0] instanceof Annotation) {
+                    return actual.equals(getActualAnnotationBehindProxy((Annotation) args[0]));
+                } else {
+                    return actual.equals(args[0]);
+                }
             }
 
             Optional<Object> cachedField = methodsCache.get(method.getName());

@@ -2,9 +2,14 @@ package com.github.blindpirate.annotationmagic;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
@@ -48,5 +53,25 @@ public class CacheabilityTest {
         Pet petAnnotation3 = magicianWithLruCache.getOneAnnotationOnClassOrNull(TestClass.class, Pet.class);
 
         assertNotSame(petAnnotation, petAnnotation3);
+    }
+
+    @Test
+    public void consecutiveCast() {
+        List<Pet> superAnnotations = Stream.of(TestClass.class.getAnnotations())
+                .filter(it -> AnnotationMagic.instanceOf(it, Pet.class))
+                .map(it -> AnnotationMagic.cast(it, Pet.class))
+                .collect(Collectors.toList());
+
+        assertEquals(Collections.singletonList("Tom"),
+                superAnnotations.stream()
+                        .filter(it -> AnnotationMagic.instanceOf(it, Cat.class))
+                        .map(it -> AnnotationMagic.cast(it, Cat.class).value())
+                        .collect(Collectors.toList())
+        );
+
+        assertSame(
+                AnnotationMagic.cast(superAnnotations.get(0), Cat.class),
+                AnnotationMagic.cast(superAnnotations.get(0), Cat.class)
+        );
     }
 }

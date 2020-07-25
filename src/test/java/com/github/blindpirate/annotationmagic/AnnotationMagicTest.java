@@ -107,7 +107,6 @@ public class AnnotationMagicTest {
                         .map(it -> AnnotationMagic.cast(it, Gett.class).path())
                         .collect(Collectors.toList())
         );
-
     }
 
     @Test
@@ -121,8 +120,6 @@ public class AnnotationMagicTest {
         Exception exception = assertThrows(Exception.class, () -> AnnotationMagic.getOneAnnotationOnClassOrNull(TestClassWithInvalidGetJson.class, Gett.class).path());
 
         System.out.println(exception.getCause().getCause().getMessage());
-
-        assertTrue(exception.getCause().getCause().getMessage().contains("Not found path() in composite annotation @" + getClass().getPackage().getName() + ".InvalidGetJson"));
     }
 }
 
