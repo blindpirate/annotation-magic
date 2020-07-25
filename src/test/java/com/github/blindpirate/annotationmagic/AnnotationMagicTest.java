@@ -1,7 +1,9 @@
 package com.github.blindpirate.annotationmagic;
 
 
+import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.Test;
+import org.junit.platform.commons.util.ExceptionUtils;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -10,6 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -117,11 +120,35 @@ public class AnnotationMagicTest {
         assertEquals("", AnnotationMagic.getOneAnnotationOnClassOrNull(TestClassWithGetJson.class, Gett.class).regex());
         assertEquals("", AnnotationMagic.getOneAnnotationOnClassOrNull(TestClassWithGetJson.class, Route.class).regex());
         assertTrue(AnnotationMagic.getOneAnnotationOnClassOrNull(TestClassWithGetJson.class, Json.class).pretty());
-        Exception exception = assertThrows(Exception.class, () -> AnnotationMagic.getOneAnnotationOnClassOrNull(TestClassWithInvalidGetJson.class, Gett.class).path());
+    }
 
-        System.out.println(exception.getCause().getCause().getMessage());
+    @Test
+    public void compositeOfDefaultValueTest() {
+        assertEquals(HttpMethod.GET, AnnotationMagic.getOneAnnotationOnClassOrNull(TestClassWithBaseAndRoute.class, Route.class).method());
+        assertEquals("", AnnotationMagic.getOneAnnotationOnClassOrNull(TestClassWithBaseAndRoute.class, Route.class).path());
+        assertEquals("", AnnotationMagic.getOneAnnotationOnClassOrNull(TestClassWithBaseAndRoute.class, Route.class).regex());
+
+        Exception e = assertThrows(RuntimeException.class,
+                () -> AnnotationMagic.getOneAnnotationOnClassOrNull(TestClassWithBaseAndRoute.class, WithoutDefault.class).value());
+        MatcherAssert.assertThat(ExceptionUtils.readStackTrace(e), containsString("Can't invoke com.github.blindpirate.annotationmagic.WithoutDefault.value() on composite annotation @com.github.blindpirate.annotationmagic.BaseAndRoute()"));
     }
 }
+
+@Retention(RetentionPolicy.RUNTIME)
+@interface WithoutDefault {
+    String value();
+}
+
+
+@Retention(RetentionPolicy.RUNTIME)
+@CompositeOf({Base.class, Route.class, WithoutDefault.class})
+@interface BaseAndRoute {
+}
+
+@BaseAndRoute
+class TestClassWithBaseAndRoute {
+}
+
 
 @Base
 @Sub
@@ -183,21 +210,8 @@ class TestClassWithRoute {
     boolean pretty() default false;
 }
 
-@Retention(RetentionPolicy.RUNTIME)
-@CompositeOf({Gett.class, Json.class})
-@interface InvalidGetJson {
-    String path() default "";
-
-    @AliasFor(value = "pretty", target = Json.class)
-    boolean pretty() default false;
-}
-
 @GetJson(path = "test", pretty = true)
 class TestClassWithGetJson {
-}
-
-@InvalidGetJson(path = "test", pretty = true)
-class TestClassWithInvalidGetJson {
 }
 
 @Gett(path = "get")

@@ -128,7 +128,16 @@ public class AnnotationMagician {
                         return result;
                     }
                 }
-                throw new IllegalStateException("Not found " + method.getName() + "() in composite annotation " + annotation);
+
+                try {
+                    Object ret = klass.getMethod(method.getName()).getDefaultValue();
+                    if (ret == null) {
+                        throw new IllegalStateException("Can't invoke " + klass.getName() + "." + method.getName() + "() on composite annotation " + annotation);
+                    }
+                    return ret;
+                } catch (NoSuchMethodError e) {
+                    throw new IllegalStateException("Can't invoke " + klass.getName() + "." + method.getName() + "() on composite annotation " + annotation, e);
+                }
             }
 
             /*
