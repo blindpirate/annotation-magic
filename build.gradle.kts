@@ -12,7 +12,7 @@ plugins {
 }
 
 rootProject.group = "com.gradle.blindpirate"
-rootProject.version = "0.2.1"
+rootProject.version = "0.2.2"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
