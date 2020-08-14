@@ -132,6 +132,9 @@ public class AnnotationMagician {
                         if ("annotationType".equals(method.getName())) {
                             return klass;
                         }
+                        if ("toString".equals(method.getName())) {
+                            return "@" + klass.toString();
+                        }
                         Object result = cache.get(method.getName());
                         if (result != null) {
                             return result;
