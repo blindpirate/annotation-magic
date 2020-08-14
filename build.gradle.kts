@@ -12,7 +12,7 @@ plugins {
 }
 
 rootProject.group = "com.gradle.blindpirate"
-rootProject.version = "0.2.4"
+rootProject.version = "0.2.5"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
@@ -130,4 +130,18 @@ tasks.javadoc {
 
 tasks.named("publishMavenJavaPublicationToMavenRepository") {
     dependsOn("check")
+}
+
+tasks.register("updateVersion") {
+    doLast {
+        val newVersion = findProperty("newVersion")
+        updateVersion("build.gradle.kts", """rootProject.version = "[\d\.]+""".toRegex(), """rootProject.version = "$newVersion""")
+        updateVersion("README.md", """annotation-magic:[\d\.]+""".toRegex(), """annotation-magic:$newVersion""")
+        updateVersion("README.md", """<version>[\d\.]+""".toRegex(), """<version>$newVersion""")
+    }
+}
+
+fun updateVersion(file: String, oldVersionRegex: Regex, newVersion: String) {
+    val content = File(rootDir, file).readText().replace(oldVersionRegex, newVersion)
+    File(rootDir, file).writeText(content)
 }
