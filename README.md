@@ -12,7 +12,7 @@ In the following example, you can see how `@Cat` extends `@Pet`, which extends `
 
 You declare the inheritance relationship via `@Extends` annotation.
 
-```
+```java
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @interface Animal {
@@ -82,7 +82,7 @@ public class ReadMeInheritanceSampleTest {
 
 Annotation composition can simplify the annotation piling up, for example:
 
-```
+```java
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @interface GET {
